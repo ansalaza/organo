@@ -93,7 +93,6 @@ void genotype_process(
 			for(uint32_t j = 0; j < ccs.size(); ++j) {
 				auto& cc = ccs[j];
 				auto& cc_e = ccs_expanded[j];
-				uint32_t local_total_seqs = cc.size() + cc_e.size();
 				uint32_t rep_i = distmat.representative(cc);
 				std::string consensus;
 				consensus_process(aligner_gap, rep_i, local_block.seqs, cc, consensus);

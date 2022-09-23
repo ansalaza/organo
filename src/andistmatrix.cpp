@@ -33,7 +33,7 @@ uint32_t andistmatrix::representative(std::vector<uint32_t>& indeces) const
 		std::vector<std::pair<double, uint32_t>> sum_dists(indeces.size(), std::make_pair(0.0,0));
 		//iterate through each index
 		for(uint32_t i = 0; i < indeces.size(); ++i){
-			for(int j = 0; j < indeces.size(); ++j){
+			for(uint32_t j = 0; j < indeces.size(); ++j){
 				if(i != j) {
 					sum_dists[i].first += get_dist(indeces[i], indeces[j]);
 					++sum_dists[i].second;

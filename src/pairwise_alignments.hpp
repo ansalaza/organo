@@ -1,3 +1,6 @@
+#ifndef PAIRWISE_ALIGNMENTS_HPP
+#define PAIRWISE_ALIGNMENTS_HPP
+
 #include <string>
 #include <vector>
 #include "organo_opts.hpp"
@@ -9,8 +12,7 @@ void spanning_alignment(
 	wfa::WFAligner& aligner, 
 	std::string& query, 
 	abg& q_tag, 
-	std::string& ref, 
-	abg& r_tag
+	std::string& ref
 	);
 
 void trimming_pairwise_alignment(
@@ -47,3 +49,5 @@ void nonspanning_assignment_task(
 	std::vector<std::vector<uint32_t>>& ccs_expanded,
 	std::vector<uint32_t>& unassigned
 	);
+
+#endif

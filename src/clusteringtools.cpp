@@ -60,7 +60,7 @@ void merge_singleton_clusters(const organo_opts& params, std::vector<uint32_t>& 
 				}
 			}
 
-			if(min_target_label < 0 || acc.dist < min_target_distsum) {
+			if(min_target_label < 0 || (acc.dist/acc.n) < (min_target_distsum/min_target_n)) {
 				min_target_label = target_label;
 				min_target_distsum = acc.dist;
 				min_target_n = acc.n;
@@ -108,7 +108,7 @@ void cluster_task(const organo_opts& params, andistmatrix& distmatrix, std::vect
 			double* height = new double[spanning.size()-1];
 			hclust_fast(spanning.size(), distmat, HCLUST_METHOD_AVERAGE, merge, height);
 			for(i = spanning.size() - 2; i > 0; --i) if(height[i] <= params.maxerror) break;
-			uint32_t clusters = spanning.size() - i - 1;
+			int clusters = spanning.size() - i - 1;
 			//output all alleles
 			if(params.maxalleles <= 0 || clusters < params.maxalleles) cutree_cdist(spanning.size(), merge, height, (double)params.maxerror, labels);
 			//guide cluster merging to meet specified max allele number
@@ -127,7 +127,6 @@ void cluster_task(const organo_opts& params, andistmatrix& distmatrix, std::vect
 				else{
 					clusters = params.maxalleles + 1;
 					cutree_k(spanning.size(), merge, params.maxalleles + 1, labels);
-
 					
 					for(i = 0; i < spanning.size(); ++i) cluster_labels.emplace_back(labels[i]);
 					std::vector<std::pair<int,int>> cluster_labels_counts;

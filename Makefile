@@ -28,7 +28,7 @@ clean:
 	$(RM) $(ODIR)/$(OUT) $(OBJS) $(DEPS)
 
 packages:
-	cd include/; git clone https://github.com/smarco/WFA2-lib.git; cd WFA2-lib; git reset --hard 06af50ce1b7a0d477a439a7ac901e4a18d76397a; make clean all
+	cd include/; git clone https://github.com/smarco/WFA2-lib.git; cd WFA2-lib; git reset --hard 06af50ce1b7a0d477a439a7ac901e4a18d76397a; make clean setup lib_wfa
 
 $(ODIR)/$(OUT): $(OBJS)
 	$(CXX) $(CXX_FLAGS) -o $@ $^ $(INC) $(CFLAGS)

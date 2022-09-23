@@ -9,7 +9,7 @@
 #include "andistmatrix.hpp"
 #include "utils.hpp"
 
-void spanning_alignment(wfa::WFAligner& aligner, std::string& query, const abg& q_tag, std::string& ref, const abg& r_tag)
+void spanning_alignment(wfa::WFAligner& aligner, std::string& query, abg& q_tag, std::string& ref)
 {
 	//query fully spans
 	if(q_tag.spanning()) aligner.alignEnd2End(query, ref);
@@ -24,11 +24,11 @@ void spanning_alignment(wfa::WFAligner& aligner, std::string& query, const abg& 
 void trimming_pairwise_alignment(wfa::WFAligner& aligner, const organo_opts& params, std::vector<abg>& abg_reads, std::vector<std::string>& seqs, andistmatrix& distmatrix)
 {
     for(uint32_t i = 0; i < seqs.size(); ++i){
-    	const abg& subj_tag = abg_reads[i];
+    	abg& subj_tag = abg_reads[i];
     	if(!subj_tag.spanning() && (subj_tag.spanning_l || subj_tag.spanning_r)){
     		std::string& subj = seqs[i];
     		for(uint32_t j = 0; j < seqs.size(); ++j){
-				const abg& target_tag = abg_reads[j];
+				abg& target_tag = abg_reads[j];
 				if(target_tag.spanning()){
 					std::string& target = seqs[j];
 		    		if(subj.size() > target.size()){
@@ -39,7 +39,7 @@ void trimming_pairwise_alignment(wfa::WFAligner& aligner, const organo_opts& par
 			        	else if(subj.size() == 0 || target.size() == 0) norm_dist = 1.0f;
 			        	else {
 			        		//swap target, subj given situation (flank(s) is there, just not aligned)
-	                		spanning_alignment(aligner, target, subj_tag, subj, target_tag);
+	                		spanning_alignment(aligner, target, subj_tag, subj);
 			        		norm_dist = aligner.getAlignmentScore() / (double)max_size;
 			        	}
 			        	distmatrix.set_dist(i, j, norm_dist);
@@ -155,11 +155,11 @@ void realignment(wfa::WFAligner& aligner_edit, wfa::WFAligner& aligner_gap, cons
 void spanning_aware_pairwise_alignment(wfa::WFAligner& aligner, const organo_opts& params, std::vector<abg>& abg_reads, std::vector<std::string>& seqs, std::vector<uint32_t>& seqs_l, andistmatrix& distmatrix)
 {
     for(uint32_t i = 0; i < abg_reads.size(); ++i){
-    	const abg& subj_tag = abg_reads[i];
+    	abg& subj_tag = abg_reads[i];
         std::string& subj = seqs[i];
         const uint32_t& subj_l = seqs_l[i];
         for(uint32_t j = i + 1; j < abg_reads.size(); ++j){
-			const abg& target_tag = abg_reads[j];
+			abg& target_tag = abg_reads[j];
             std::string& target = seqs[j];
             const uint32_t& target_l = seqs_l[j];
             //at least one spanning
@@ -179,15 +179,15 @@ void spanning_aware_pairwise_alignment(wfa::WFAligner& aligner, const organo_opt
 	        		double norm_dist;
 	        		//both are spanning
 	        		if(subj_tag.spanning() && target_tag.spanning()){
-	        			spanning_alignment(aligner, target, target_tag, subj, subj_tag);
+	        			spanning_alignment(aligner, target, target_tag, subj);
 	        			double norm_dist_e = std::abs(aligner.getAlignmentScore()) / (double)max_size;
 	                	norm_dist = norm_dist_e > norm_dist_o ? norm_dist_e : norm_dist_o;
 	        		}
 	                //subj is spanning
 	                else {
-	                	if(subj_tag.spanning() && !target_tag.spanning()) spanning_alignment(aligner, target, target_tag, subj, subj_tag);
+	                	if(subj_tag.spanning() && !target_tag.spanning()) spanning_alignment(aligner, target, target_tag, subj);
 	                	//target is spanning
-	                	else spanning_alignment(aligner, subj, subj_tag, target, target_tag);
+	                	else spanning_alignment(aligner, subj, subj_tag, target);
 	                	norm_dist = std::abs(aligner.getAlignmentScore()) / (double)max_size;
 	            	}
 
