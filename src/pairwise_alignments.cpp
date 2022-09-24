@@ -56,13 +56,13 @@ void flanking_kmers(const organo_opts& params, const std::string& cigar, std::ve
 	int k_acc = 0;
 
 	for(uint32_t i = 0; i < cigar.size(); ++i){
-		if(k_acc >= params.k) kmers.emplace_back(pos);
+		if(k_acc >= params.k) kmers.emplace_back((int)pos);
 		auto& op = cigar[i];
 		if(op == 'M') ++k_acc;
 		else k_acc = 0;
 		if(op != 'D') ++pos;
 	}
-	if(k_acc >= params.k) kmers.emplace_back(pos);
+	if(k_acc >= params.k) kmers.emplace_back((int)pos);
 
 }
 
@@ -131,7 +131,7 @@ void realignment(wfa::WFAligner& aligner_edit, wfa::WFAligner& aligner_gap, cons
 			if(min_dist < params.maxerror) nonspanning_indeces.emplace_back(i);
 		}
 	}
-
+	/**
 	if(!nonspanning_indeces.empty() && !spanning_indeces.empty()){
 		for(auto& i : nonspanning_indeces){
 			abg& subj_tag = abg_reads[i];
@@ -150,6 +150,7 @@ void realignment(wfa::WFAligner& aligner_edit, wfa::WFAligner& aligner_gap, cons
 			}
 		}
 	}
+	*/
 }
 
 void spanning_aware_pairwise_alignment(wfa::WFAligner& aligner, const organo_opts& params, std::vector<abg>& abg_reads, std::vector<std::string>& seqs, std::vector<uint32_t>& seqs_l, andistmatrix& distmatrix)

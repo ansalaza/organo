@@ -35,7 +35,7 @@ void realign_process(BS::thread_pool& pool, samFile* outfile, std::vector<abg_bl
 			andistmatrix distmat(local_block.size());
 			if(!params.hp && params.hpd) trimming_pairwise_alignment(aligner_edit, params, local_block.reads, hp_compressed_seq, distmat);
 			else trimming_pairwise_alignment(aligner_edit, params, local_block.reads, local_block.seqs, distmat);
-			//realignment(aligner_edit, aligner, params, local_block.reads, local_block.seqs, distmat);
+			realignment(aligner_edit, aligner, params, local_block.reads, local_block.seqs, distmat);
 			std::vector<uint32_t> final_indeces(local_block.size());
 			for(uint32_t j = 0; j < local_block.size(); ++j) final_indeces[j] = j;
 			seq_block_mutex.lock();
