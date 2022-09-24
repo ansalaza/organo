@@ -26,6 +26,7 @@ void realign_process(BS::thread_pool& pool, samFile* outfile, std::vector<abg_bl
 		for(int i = a; i < b; ++i){
 			//init alignment objects for current thread
 			auto& local_block = loaded_blocks[i];
+			std::cerr << local_block.name << '\n';
 			std::vector<std::string> hp_compressed_seq;
     	if(!params.hp && params.hpd) {
     		hp_compressed_seq.resize(local_block.size(), "");
