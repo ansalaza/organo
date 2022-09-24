@@ -114,16 +114,16 @@ void generate(const std::string bam, const std::string bed, const std::string ha
 					std::vector<std::string> abg_edge_seqs;
 					std::vector<uint8_t> mapqs;
 					std::vector<bool> primaries;
-					std::cerr << "(" << antimestamp() << "): Iterating through reads at " << region_bed << std::endl;
+					//std::cerr << "(" << antimestamp() << "): Iterating through reads at " << region_bed << std::endl;
 					//iterate through each alignment and generate AB-graphs
 					while(sam_itr_next(bam_inst.fp, iter, bam_inst.read) > 0){
 						if(bam_inst.read->core.qual >= params.min_mapq){
 							std::string edge_seq;
 							abg_generate_msg msg;
 							abg_generate(bam_inst.read, region.start, region.end, msg, edge_seq);
-							std::cerr << "(" << antimestamp() << "): --Generated " << region_bed << std::endl;
+							//std::cerr << "(" << antimestamp() << "): --Generated " << region_bed << std::endl;
 							if(msg.successful) {
-								std::cerr << "(" << antimestamp() << "): --Success " << region_bed << std::endl;
+								//std::cerr << "(" << antimestamp() << "): --Success " << region_bed << std::endl;
 								abg read;
 								read.name = (char*)bam_inst.read->data;
 								read.spanning_l = msg.spanning_l;
@@ -138,14 +138,14 @@ void generate(const std::string bam, const std::string bed, const std::string ha
 								abg_edge_seqs.emplace_back(edge_seq);
 								mapqs.emplace_back(bam_inst.read->core.qual);
 								primaries.emplace_back(!(bam_inst.read->core.flag & BAM_FSECONDARY || bam_inst.read->core.flag & BAM_FSUPPLEMENTARY));
-								std::cerr << "(" << antimestamp() << "): --Added " << region_bed << std::endl;
+								//std::cerr << "(" << antimestamp() << "): --Added " << region_bed << std::endl;
 							}
 						
 						}
 					}
 
 					if(!abg_reads.empty()){
-						std::cerr << "(" << antimestamp() << "): Found " << abg_reads.size() << " reads " << std::endl;
+						//std::cerr << "(" << antimestamp() << "): Found " << abg_reads.size() << " reads " << std::endl;
 						std::vector<uint32_t> indeces(abg_reads.size());
 						for(uint32_t i = 0; i < abg_reads.size(); ++i) indeces[i] = i;
 						sort(indeces.begin(), indeces.end(), [&abg_reads](const uint32_t& i, const uint32_t& j) -> bool
@@ -161,10 +161,10 @@ void generate(const std::string bam, const std::string bed, const std::string ha
 				            //different haplotype
 				            else return *i_tag.haplotype < *j_tag.haplotype;
 				        });
-						std::cerr << "(" << antimestamp() << "): Sorted " << std::endl;
+						//std::cerr << "(" << antimestamp() << "): Sorted " << std::endl;
 						std::vector<std::pair<uint32_t,uint32_t>> duplicate_indeces;
 						duplicates(abg_reads, indeces, duplicate_indeces);
-						std::cerr << "(" << antimestamp() << "): Mark multimapped" << std::endl;
+						//std::cerr << "(" << antimestamp() << "): Mark multimapped" << std::endl;
 						std::vector<uint32_t> final_indeces;
 						for(auto it = duplicate_indeces.begin(); it != duplicate_indeces.end();++it){
 							if((int)it->second - (int)it->first < 1) exit(1);
@@ -181,11 +181,11 @@ void generate(const std::string bam, const std::string bed, const std::string ha
 								final_indeces.emplace_back(indeces[primary_i]);
 							}
 						}
-						std::cerr << "(" << antimestamp() << "): Reduced" << std::endl;
+						//std::cerr << "(" << antimestamp() << "): Reduced" << std::endl;
 						seq_block_mutex.lock();
 						write2bam(bamstdout, region_bed, final_indeces, abg_reads, abg_edge_seqs);
 						seq_block_mutex.unlock();
-						std::cerr << "(" << antimestamp() << "): Finished" << std::endl;
+						//std::cerr << "(" << antimestamp() << "): Finished" << std::endl;
 					}
 				}
 				hts_itr_destroy(iter);
