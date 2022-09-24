@@ -171,14 +171,14 @@ void generate(const std::string bam, const std::string bed, const std::string ha
 							if(it->second - it->first == 1) final_indeces.emplace_back(indeces[it->first]);
 							//if ambiguous
 							else {
-								uint32_t primary_i;
+								uint32_t primary_i = indeces.size();
 								for(uint32_t i = it->first; i < it->second; ++i){
 									if(primaries[indeces[i]]){
 										primary_i = i;
 										break;
 									}
 								}
-								final_indeces.emplace_back(indeces[primary_i]);
+								if(primary_i < indeces.size()) final_indeces.emplace_back(indeces[primary_i]);
 							}
 						}
 						//std::cerr << "(" << antimestamp() << "): Reduced" << std::endl;
