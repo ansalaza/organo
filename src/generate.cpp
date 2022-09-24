@@ -113,11 +113,10 @@ void generate(const std::string bam, const std::string bed, const std::string ha
 					std::vector<abg> abg_reads;
 					std::vector<std::string> abg_edge_seqs;
 					std::vector<uint8_t> mapqs;
-					std::vector<bool> primaries;
 					//std::cerr << "(" << antimestamp() << "): Iterating through reads at " << region_bed << std::endl;
 					//iterate through each alignment and generate AB-graphs
 					while(sam_itr_next(bam_inst.fp, iter, bam_inst.read) > 0){
-						if(bam_inst.read->core.qual >= params.min_mapq){
+						if(bam_inst.read->core.qual >= params.min_mapq && !(bam_inst.read->core.flag & BAM_FSECONDARY || bam_inst.read->core.flag & BAM_FSUPPLEMENTARY)){
 							std::string edge_seq;
 							abg_generate_msg msg;
 							abg_generate(bam_inst.read, region.start, region.end, msg, edge_seq);
@@ -137,7 +136,6 @@ void generate(const std::string bam, const std::string bed, const std::string ha
 								abg_reads.emplace_back(read);
 								abg_edge_seqs.emplace_back(edge_seq);
 								mapqs.emplace_back(bam_inst.read->core.qual);
-								primaries.emplace_back(!(bam_inst.read->core.flag & BAM_FSECONDARY || bam_inst.read->core.flag & BAM_FSUPPLEMENTARY));
 								//std::cerr << "(" << antimestamp() << "): --Added " << region_bed << std::endl;
 							}
 						
@@ -161,6 +159,7 @@ void generate(const std::string bam, const std::string bed, const std::string ha
 				            //different haplotype
 				            else return *i_tag.haplotype < *j_tag.haplotype;
 				        });
+						/**
 						//std::cerr << "(" << antimestamp() << "): Sorted " << std::endl;
 						std::vector<std::pair<uint32_t,uint32_t>> duplicate_indeces;
 						duplicates(abg_reads, indeces, duplicate_indeces);
@@ -181,9 +180,10 @@ void generate(const std::string bam, const std::string bed, const std::string ha
 								if(primary_i < indeces.size()) final_indeces.emplace_back(indeces[primary_i]);
 							}
 						}
+						*/
 						//std::cerr << "(" << antimestamp() << "): Reduced" << std::endl;
 						seq_block_mutex.lock();
-						write2bam(bamstdout, region_bed, final_indeces, abg_reads, abg_edge_seqs);
+						write2bam(bamstdout, region_bed, indeces, abg_reads, abg_edge_seqs);
 						seq_block_mutex.unlock();
 						//std::cerr << "(" << antimestamp() << "): Finished" << std::endl;
 					}
