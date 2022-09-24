@@ -112,7 +112,6 @@ void generate(const std::string bam, const std::string bed, const std::string ha
 				else{
 					std::vector<abg> abg_reads;
 					std::vector<std::string> abg_edge_seqs;
-					std::vector<uint8_t> mapqs;
 					//std::cerr << "(" << antimestamp() << "): Iterating through reads at " << region_bed << std::endl;
 					//iterate through each alignment and generate AB-graphs
 					while(sam_itr_next(bam_inst.fp, iter, bam_inst.read) > 0){
@@ -135,7 +134,6 @@ void generate(const std::string bam, const std::string bed, const std::string ha
 								if(it_ha != read2ha.end()) read.haplotype = std::make_shared<int>(it_ha->second);
 								abg_reads.emplace_back(read);
 								abg_edge_seqs.emplace_back(edge_seq);
-								mapqs.emplace_back(bam_inst.read->core.qual);
 								//std::cerr << "(" << antimestamp() << "): --Added " << region_bed << std::endl;
 							}
 						
