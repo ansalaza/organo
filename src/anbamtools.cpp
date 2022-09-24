@@ -179,7 +179,7 @@ void write2bam(samFile* outfile, const std::string& region_bed, const std::vecto
 	    std::string tag;
 		abg_read.to_bam_aux(region_bed, tag);
 	    abg_bam_aux_update(region_bed, abg_read, q);
-	    sam_write1(outfile, nullptr, q);
+	    if(sam_write1(outfile, nullptr, q) == -1) std::cerr << "Failed writing at " << abg_read.name << " at region " << region_bed << '\n';
 	    bam_destroy1(q);
 	}
 }
