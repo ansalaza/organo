@@ -131,7 +131,7 @@ void realignment(wfa::WFAligner& aligner_edit, wfa::WFAligner& aligner_gap, cons
 			if(min_dist < params.maxerror) nonspanning_indeces.emplace_back(i);
 		}
 	}
-	/**
+
 	if(!nonspanning_indeces.empty() && !spanning_indeces.empty()){
 		for(auto& i : nonspanning_indeces){
 			abg& subj_tag = abg_reads[i];
@@ -150,7 +150,7 @@ void realignment(wfa::WFAligner& aligner_edit, wfa::WFAligner& aligner_gap, cons
 			}
 		}
 	}
-	*/
+
 }
 
 void spanning_aware_pairwise_alignment(wfa::WFAligner& aligner, const organo_opts& params, std::vector<abg>& abg_reads, std::vector<std::string>& seqs, std::vector<uint32_t>& seqs_l, andistmatrix& distmatrix)
