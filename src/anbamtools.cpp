@@ -159,11 +159,14 @@ void write2bam(samFile* outfile, const std::string& region_bed, const std::vecto
 	for(const auto& i : indeces){
 		const std::string& rseq = edge_seqs[i];
 		const abg& abg_read = abg_reads[i];
+		std::cerr << abg_read.name << '\n';
 		bam1_t *q = bam_init1();
 	    //`q->data` structure: qname-cigar-seq-qual-aux
 	    q->l_data = abg_read.name.size() + 1 + (int)(1.5*rseq.size() + (rseq.size() % 2 != 0));
 	    q->m_data = q->l_data;
+	    std::cerr << q->l_data << ',' << q->m_data << '\n';
 	    q->data = (uint8_t*)realloc(q->data, q->m_data);
+	    std::cerr << "realloc\n";
 	    q->core.l_qname = abg_read.name.size() + 1; // +1 includes the tailing '\0'
 	    q->core.l_qseq = rseq.size();
 	    q->core.n_cigar = 0; // we have no cigar sequence
@@ -172,15 +175,20 @@ void write2bam(samFile* outfile, const std::string& region_bed, const std::vecto
 	    q->core.mtid = -1;
 	    q->core.mpos = -1;
 	    memcpy(q->data, abg_read.name.c_str(), q->core.l_qname); // first set qname
+	    std::cerr << "memcpy\n";
 	    uint8_t *s = bam_get_seq(q);
 	    for (int i = 0; i < q->core.l_qseq; ++i) bam1_seq_seti(s, i, seq_nt16_table[rseq[i]]);
+	    std::cerr << "seq set\n";
 	    s = bam_get_qual(q);
 	    for (int i = 0; i < q->core.l_qseq; ++i) s[i] = base_qual;
+	    std::cerr << "qual set\n";
 	    std::string tag;
 		abg_read.to_bam_aux(region_bed, tag);
 	    abg_bam_aux_update(region_bed, abg_read, q);
+	    std::cerr << "aux updated\n";
 	    if(sam_write1(outfile, nullptr, q) == -1) std::cerr << "Failed writing at " << abg_read.name << " at region " << region_bed << '\n';
 	    bam_destroy1(q);
+	    std::cerr << "bam destroyed\n";
 	}
 }
 
