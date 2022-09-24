@@ -35,8 +35,8 @@ void trimming_pairwise_alignment(wfa::WFAligner& aligner, const organo_opts& par
 		    			uint32_t max_size = subj.size() > target.size() ? subj.size() : target.size();
 			            double norm_dist;
 			        	//no need for alignment
-			        	if(subj == target) norm_dist = 0.0f;
-			        	else if(subj.size() == 0 || target.size() == 0) norm_dist = 1.0f;
+			        	if(subj == target) norm_dist = 0.0;
+			        	else if(subj.size() == 0 || target.size() == 0) norm_dist = 1.0;
 			        	else {
 			        		//swap target, subj given situation (flank(s) is there, just not aligned)
 	                		spanning_alignment(aligner, target, subj_tag, subj);
@@ -121,7 +121,7 @@ void realignment(wfa::WFAligner& aligner_edit, wfa::WFAligner& aligner_gap, cons
 		std::string& subj_seq = seqs[i];
 		if(subj_tag.spanning() && subj_seq.size() > 0) spanning_indeces.emplace_back(i);
 		else if(!subj_tag.spanning() && subj_seq.size() > 0 && (subj_tag.spanning_l || subj_tag.spanning_r)) {
-			double min_dist = 1.0f;
+			double min_dist = 1.0;
 			for(uint32_t j = 0; j < seqs.size(); ++j){
 				if(i != j){
 					double acc_dist = distmatrix.get_dist(i, j);
