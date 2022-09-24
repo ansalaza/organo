@@ -157,7 +157,6 @@ void bam_iterator(ansbam& bam_inst)
 void write2bam(samFile* outfile, const std::string& region_bed, const std::vector<uint32_t>& indeces, const std::vector<abg>& abg_reads, const std::vector<std::string>& edge_seqs)
 {
 	for(const auto& i : indeces){
-		std::cerr << region_bed << ':' << i << '/' << abg_reads.size() << '\n';
 		const std::string& rseq = edge_seqs[i];
 		const abg& abg_read = abg_reads[i];
 		//std::cerr << abg_read.name << '\n';
