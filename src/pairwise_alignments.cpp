@@ -87,6 +87,7 @@ void find_bps_cigar(wfa::WFAligner& aligner, const organo_opts& params, std::vec
 				}
 			}
 			else{
+				/**
 				aligner.alignEnd2End(target_seq, subj_seq);
 				std::string cigar = aligner.getAlignmentCigar();
 				int all = 0;
@@ -105,7 +106,7 @@ void find_bps_cigar(wfa::WFAligner& aligner, const organo_opts& params, std::vec
 						bps_r.emplace_back(kmers.back());
 					}
 				}
-			
+				*/
 			}
 		}
 	}
