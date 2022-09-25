@@ -26,7 +26,6 @@ void realign_process(BS::thread_pool& pool, samFile* outfile, std::vector<abg_bl
 		for(int i = a; i < b; ++i){
 			//init alignment objects for current thread
 			auto& local_block = loaded_blocks[i];
-			std::cerr << local_block.name << '\n';
 			std::vector<std::string> hp_compressed_seq;
     	if(!params.hp && params.hpd) {
     		hp_compressed_seq.resize(local_block.size(), "");
@@ -35,7 +34,7 @@ void realign_process(BS::thread_pool& pool, samFile* outfile, std::vector<abg_bl
 			andistmatrix distmat(local_block.size());
 			if(!params.hp && params.hpd) trimming_pairwise_alignment(aligner_edit, params, local_block.reads, hp_compressed_seq, distmat);
 			else trimming_pairwise_alignment(aligner_edit, params, local_block.reads, local_block.seqs, distmat);
-			realignment(aligner_edit, aligner, params, local_block.reads, local_block.seqs, distmat);
+			//realignment(aligner_edit, aligner, params, local_block.reads, local_block.seqs, distmat);
 			std::vector<uint32_t> final_indeces(local_block.size());
 			for(uint32_t j = 0; j < local_block.size(); ++j) final_indeces[j] = j;
 			seq_block_mutex.lock();
@@ -69,7 +68,7 @@ void realign(const std::string& bam, const organo_opts& params)
 
   while(iter.next()){
   	std::cerr << "(" << antimestamp() << "): Loaded " << params.block_size << " target regions\n";
-  	//realign_process(pool, file, iter.loaded_blocks, seq_block_mutex, params);
+  	realign_process(pool, file, iter.loaded_blocks, seq_block_mutex, params);
   	total_blocks_processed += iter.loaded_blocks.size();
   	std::cerr << "(" << antimestamp() << "): Processed " << total_blocks_processed << " target regions\n";
   }
