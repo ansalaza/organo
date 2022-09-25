@@ -56,13 +56,13 @@ void flanking_kmers(const organo_opts& params, const std::string& cigar, std::ve
 	int k_acc = 0;
 
 	for(uint32_t i = 0; i < cigar.size(); ++i){
-		if(k_acc >= params.k) kmers.emplace_back((int)pos);
+		if(k_acc >= params.k) kmers.emplace_back(pos);
 		auto& op = cigar[i];
 		if(op == 'M') ++k_acc;
 		else k_acc = 0;
 		if(op != 'D') ++pos;
 	}
-	if(k_acc >= params.k) kmers.emplace_back((int)pos);
+	if(k_acc >= params.k) kmers.emplace_back(pos);
 
 }
 
@@ -97,7 +97,6 @@ void find_bps_cigar(wfa::WFAligner& aligner, const organo_opts& params, std::vec
 					if(op == 'M') ++match;
 				}
 				double sim = (double)match / all;
-				/**
 				if(sim > params.minsim){
 					std::vector<int> kmers;
 					flanking_kmers(params, cigar, kmers);
@@ -106,7 +105,6 @@ void find_bps_cigar(wfa::WFAligner& aligner, const organo_opts& params, std::vec
 						bps_r.emplace_back(kmers.back());
 					}
 				}
-				*/
 			}
 		}
 	}
