@@ -219,7 +219,7 @@ void nonspanning_assignment_task(const organo_opts& params, andistmatrix& distma
 					}
 				}
 				//is assignable to current cc
-				if(min_weight >= 0.0) valid_ccs.emplace_back((uint32_t)cc_i);
+				if(min_weight >= 0.0) valid_ccs.emplace_back(cc_i);
 			}
 			//unique assignment
 			if(valid_ccs.empty()) unassigned.emplace_back(i);

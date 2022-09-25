@@ -122,6 +122,7 @@ void cluster(const std::string& bam, const organo_opts& params)
 	abg_block_iter iter(bam, params.block_size, params.maxcov, params.hp);
 
 	while(iter.next()){
+		std::cerr << "(" << antimestamp() << "): Loaded " << params.block_size << " target regions\n";
 		genotype_process(pool, iter.loaded_blocks, seq_block_mutex, dist_output, params);
 		total_blocks_processed += iter.loaded_blocks.size();
 		std::cerr << "(" << antimestamp() << "): Processed " << total_blocks_processed << " target regions\n";
