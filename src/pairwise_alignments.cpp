@@ -119,7 +119,9 @@ void realignment(wfa::WFAligner& aligner_edit, wfa::WFAligner& aligner_gap, cons
 		abg& subj_tag = abg_reads[i];
 		std::string& subj_seq = seqs[i];
 		if(subj_tag.spanning() && subj_seq.size() > 0) spanning_indeces.emplace_back(i);
-		else if(!subj_tag.spanning() && subj_seq.size() > 0 && (subj_tag.spanning_l || subj_tag.spanning_r)) {
+		else if(!subj_tag.spanning() && subj_seq.size() > 0 && (subj_tag.spanning_l || subj_tag.spanning_r)) nonspanning_indeces.emplace_back(i);
+			/**
+		{
 			double min_dist = 1.0;
 			for(uint32_t j = 0; j < seqs.size(); ++j){
 				if(i != j){
@@ -129,6 +131,7 @@ void realignment(wfa::WFAligner& aligner_edit, wfa::WFAligner& aligner_gap, cons
 			}
 			if(min_dist < params.maxerror) nonspanning_indeces.emplace_back(i);
 		}
+		*/
 	}
 
 	if(!nonspanning_indeces.empty() && !spanning_indeces.empty()){
