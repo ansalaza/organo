@@ -71,7 +71,6 @@ void genotype_process(
 		for(int i = a; i < b; ++i){
 			//init alignment objects for current thread
 			auto& local_block = loaded_blocks[i];
-			std::cerr << local_block.name << '\n';
 			std::vector<uint32_t> seqs_l(local_block.size());
 			for(uint32_t j = 0; j < local_block.size(); ++j) seqs_l[j] = local_block.seqs[j].size();
 			std::vector<std::string> hp_compressed_seq;
