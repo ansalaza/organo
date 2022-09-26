@@ -122,18 +122,26 @@ void generate(const std::string bam, const std::string bed, const std::string ha
 							//std::cerr << "(" << antimestamp() << "): --Generated " << region_bed << std::endl;
 							if(msg.successful) {
 								//std::cerr << "(" << antimestamp() << "): --Success " << region_bed << std::endl;
-								abg read;
-								read.name = (char*)bam_inst.read->data;
-								read.spanning_l = msg.spanning_l;
-								read.spanning_r = msg.spanning_r;
-							    auto sa = bam_aux_get(bam_inst.read, sa_tag.c_str());
-							    read.supplement = sa != NULL ? true : false;
-							    auto np = bam_aux_get(bam_inst.read, np_tag.c_str());
-							    if(np != NULL) read.np = std::make_shared<int>(bam_aux2i(np));
-								auto it_ha = read2ha.find(read.name);
-								if(it_ha != read2ha.end()) read.haplotype = std::make_shared<int>(it_ha->second);
-								abg_reads.emplace_back(read);
-								abg_edge_seqs.emplace_back(edge_seq);
+								if(params.fasta){
+									seq_block_mutex.lock();
+									std::cout << '>' << region_bed << ' ' << "RN:Z:" << (char*)bam_inst.read->data << '\n';
+									std::cout << edge_seq << '\n';
+									seq_block_mutex.unlock();
+								}
+								else{
+									abg read;
+									read.name = (char*)bam_inst.read->data;
+									read.spanning_l = msg.spanning_l;
+									read.spanning_r = msg.spanning_r;
+								    auto sa = bam_aux_get(bam_inst.read, sa_tag.c_str());
+								    read.supplement = sa != NULL ? true : false;
+								    auto np = bam_aux_get(bam_inst.read, np_tag.c_str());
+								    if(np != NULL) read.np = std::make_shared<int>(bam_aux2i(np));
+									auto it_ha = read2ha.find(read.name);
+									if(it_ha != read2ha.end()) read.haplotype = std::make_shared<int>(it_ha->second);
+									abg_reads.emplace_back(read);
+									abg_edge_seqs.emplace_back(edge_seq);
+								}
 								//std::cerr << "(" << antimestamp() << "): --Added " << region_bed << std::endl;
 							}
 						

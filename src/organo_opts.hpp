@@ -7,6 +7,7 @@
 struct organo_opts {
 	//abg_generate args
 	uint8_t min_mapq;
+	bool fasta;
 
 	//collapse args
 
