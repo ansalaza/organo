@@ -123,8 +123,14 @@ void generate(const std::string bam, const std::string bed, const std::string ha
 							if(msg.successful) {
 								//std::cerr << "(" << antimestamp() << "): --Success " << region_bed << std::endl;
 								if(params.fasta){
+									char span_tag;
+									if(msg.spanning_l && msg.spanning_r) span_tag = 'b';
+									else if(msg.spanning_l) span_tag = 'l';
+									else if(msg.spanning_r) span_tag = 'r';
+									else span_tag = 'n';
+
 									seq_block_mutex.lock();
-									std::cout << '>' << region_bed << ' ' << "RN:Z:" << (char*)bam_inst.read->data << '\n';
+									std::cout << '>' << region_bed << " SP:Z:" << span_tag << " RN:Z:" << (char*)bam_inst.read->data << '\n';
 									std::cout << edge_seq << '\n';
 									seq_block_mutex.unlock();
 								}
