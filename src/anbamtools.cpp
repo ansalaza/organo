@@ -130,11 +130,6 @@ void get_breakpoints(const int& start,  const int& end, const bool& clipped_l, c
 void abg_generate(bam1_t* read,	int rstart, int rend, abg_generate_msg& msg, std::string& seq)
 {
 	std::unique_ptr<std::pair<int,int>> query_ptr;
-	//quality string
-	uint8_t *q = bam_get_seq(read);
-	std::string read_seq;
-	//update array for read seqeunce
-	for(int i=0; i < read->core.l_qseq ; i++) read_seq += seq_nt16_str[bam_seqi(q,i)];
 	std::vector<int> projectedcoords;
 	bool clipped_l = false, clipped_r = false;
 	project_positions(read, clipped_l, clipped_r, projectedcoords);
@@ -144,7 +139,15 @@ void abg_generate(bam1_t* read,	int rstart, int rend, abg_generate_msg& msg, std
 			std::cerr << "ERROR: unexpected querty start/end coords found for read " << (char*)read->data << '\n';
 			exit(1);
 		}
-		if(query_ptr->first == -1) seq = ""; else seq = read_seq.substr(query_ptr->first, query_ptr->second - query_ptr->first);
+		if(query_ptr->first == -1) seq = ""; 
+		else {
+			int l_qsubseq = query_ptr->second - query_ptr->first;
+			//quality string
+			uint8_t *q = bam_get_seq(read);
+			//update array for read seqeunce
+			for(int i = 0; i  < l_qsubseq; i++) seq += seq_nt16_str[bam_seqi(q, i + query_ptr->first)];
+			//seq = read_seq.substr(query_ptr->first, query_ptr->second - query_ptr->first);
+		}
 	}	
 }
 
