@@ -68,7 +68,7 @@ void get_breakpoints2(const int& start,  const int& end, bam1_t* alignment, abg_
 	bool clipped_l = false, clipped_r = false;
 	int qstart_dist = -1, qend_dist = -1;
 	int leftmost_q = -1, rightmost_q = -1, leftmost_r = -1, rightmost_r = -1;
-	int qstart_q = -1, qend_q = -1;
+	int qstart_q = -1, qend_q = -1, qstart_r = -1, qend_r = -1;
 	uint32_t qstart_cigar_i = 0, qend_cigar_i = 0;
 	uint32_t *cigar = bam_get_cigar(alignment);
 	//current positions in ref and query
@@ -104,12 +104,14 @@ void get_breakpoints2(const int& start,  const int& end, bam1_t* alignment, abg_
 					qstart_dist = cstart_dist;
 					qstart_q = qpos;
 					qstart_cigar_i = i;
+					qstart_r = rpos;
 				}
 				//new closest end coordinate found
 				if(cend_dist >= 0 && (qend_dist < 0 || cend_dist < qend_dist)){
 					qend_dist = cend_dist;
 					qend_q = qpos;
 					qend_cigar_i = i;
+					qend_r = rpos;
 				}
 				++rpos;
 				++qpos;
@@ -123,6 +125,8 @@ void get_breakpoints2(const int& start,  const int& end, bam1_t* alignment, abg_
 	//std::cerr << start << '-' << end << '\n';
 	//std::cerr << "leftmost_r: " << leftmost_r << "; rightmost_r: " << rightmost_r << "; leftmost_q: " << leftmost_q << "; rightmost_q: " << rightmost_q << '\n';
 	//std::cerr << "qstart_q: " << qstart_q << ';' << "qend_q: " << qend_q << '\n';
+	//std::cerr << "qstart_r: " << qstart_r << ';' << "qend_r: " << qend_r << '\n';
+	//std::cerr << qstart_dist << ',' << qend_dist << '\n';
 
 	//alignment does not span either start/end coord
 	if(rightmost_r < start || leftmost_r > end){
@@ -142,7 +146,7 @@ void get_breakpoints2(const int& start,  const int& end, bam1_t* alignment, abg_
 	} 
 	else{
 		//readjust if alignment is clipped
-		if(clipped_l && qstart_q == 1) {
+		if(leftmost_r > start && clipped_l && qstart_cigar_i == 1) {
 			//continue expanding until end of query or end of cigar
 			while(qstart_q > 0 && qstart_cigar_i > 0) {
 				const int op = bam_cigar_op(cigar[qstart_cigar_i - 1]);
@@ -156,7 +160,7 @@ void get_breakpoints2(const int& start,  const int& end, bam1_t* alignment, abg_
 			}
 		}
 		//readjustment if alignment is clipped
-		if(clipped_r && qend_q == (int)alignment->core.n_cigar - 1){
+		if(rightmost_r < end && clipped_r && qend_cigar_i == ((int)alignment->core.n_cigar - 1)){
 			//continue expanding until end of query or end of cigar
 			while(qend_q < ((int)alignment->core.l_qseq - 1) && qend_cigar_i < alignment->core.n_cigar){
 				const int op = bam_cigar_op(cigar[qend_cigar_i - 1]);
