@@ -114,6 +114,26 @@ void cluster_task(const organo_opts& params, andistmatrix& distmatrix, std::vect
 			//guide cluster merging to meet specified max allele number
 			else{
 				std::vector<int> cluster_labels;
+				cutree_cdist(spanning.size(), merge, height, (double)params.maxerror, labels);
+				for(i = 0; i < spanning.size(); ++i) cluster_labels.emplace_back(labels[i]);
+				std::vector<std::pair<int,int>> cluster_labels_counts;
+				group_count_task(cluster_labels, cluster_labels_counts);
+				int clusters_min_n = 0;
+				for(i = 0; i < cluster_labels_counts.size(); ++i) if(cluster_labels_counts[i].second >= params.mincov) ++clusters_min_n;
+				if(clusters_min_n > 0 && clusters_min_n <= params.maxalleles) merge_singleton_clusters(params, spanning, distmat, labels, cluster_labels_counts);
+				else{
+					clusters = params.maxalleles + 1;
+					cluster_labels.clear();
+					cutree_k(spanning.size(), merge, params.maxalleles + 1, labels);
+					for(i = 0; i < spanning.size(); ++i) cluster_labels.emplace_back(labels[i]);
+					cluster_labels_counts.clear();
+					group_count_task(cluster_labels, cluster_labels_counts);
+					if(cluster_labels_counts.back().second >= params.mincov) cutree_k(spanning.size(), merge, params.maxalleles, labels);
+					else merge_singleton_clusters(params, spanning, distmat,labels,cluster_labels_counts);
+				}
+
+				/**
+				std::vector<int> cluster_labels;
 				if(clusters == params.maxalleles){
 					cutree_k(spanning.size(), merge, params.maxalleles, labels);
 					for(i = 0; i < spanning.size(); ++i) cluster_labels.emplace_back(labels[i]);
@@ -134,9 +154,9 @@ void cluster_task(const organo_opts& params, andistmatrix& distmatrix, std::vect
 					
 					if(cluster_labels_counts.back().second >= params.mincov) cutree_k(spanning.size(), merge, params.maxalleles, labels);
 					else merge_singleton_clusters(params, spanning, distmat,labels,cluster_labels_counts);
-					
-					
 				}
+				*/
+
 			}
 
 			std::vector<int> final_labels(spanning.size());
