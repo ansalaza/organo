@@ -21,6 +21,7 @@ int main(int argc, char **argv){
     if(std::string(argv[1]) == "generate") command_generate(argc - 1, &argv[1]);
     else if(std::string(argv[1]) == "realign") command_realign(argc - 1, &argv[1]);
     else if(std::string(argv[1]) == "cluster") command_cluster(argc - 1, &argv[1]);
+    else if(std::string(argv[1]) == "dist") command_dist(argc - 1, &argv[1]);
     else printHelp();
   }
 

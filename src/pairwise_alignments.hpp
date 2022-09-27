@@ -28,8 +28,7 @@ void realignment(
 	wfa::WFAligner& aligner_gap, 
 	const organo_opts& params, 
 	std::vector<abg>& abg_reads, 
-	std::vector<std::string>& seqs, 
-	andistmatrix& distmatrix
+	std::vector<std::string>& seqs
 	);
 
 void spanning_aware_pairwise_alignment(

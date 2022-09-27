@@ -111,27 +111,25 @@ void find_bps_cigar(wfa::WFAligner& aligner, const organo_opts& params, std::vec
 }
 
 
-void realignment(wfa::WFAligner& aligner_edit, wfa::WFAligner& aligner_gap, const organo_opts& params, std::vector<abg>& abg_reads, std::vector<std::string>& seqs, andistmatrix& distmatrix)
+void realignment(wfa::WFAligner& aligner_edit, wfa::WFAligner& aligner_gap, const organo_opts& params, std::vector<abg>& abg_reads, std::vector<std::string>& seqs)
 {
-	std::vector<int> nonspanning_indeces;
+	uint32_t max_spanning_size = 0;
 	std::vector<int> spanning_indeces;
 	for(uint32_t i = 0; i < seqs.size(); ++i){
 		abg& subj_tag = abg_reads[i];
 		std::string& subj_seq = seqs[i];
-		if(subj_tag.spanning() && subj_seq.size() > 0) spanning_indeces.emplace_back((int)i);
-		else if(!subj_tag.spanning() && subj_seq.size() > 0 && (subj_tag.spanning_l || subj_tag.spanning_r)) nonspanning_indeces.emplace_back((int)i);
-			/**
-		{
-			double min_dist = 1.0;
-			for(uint32_t j = 0; j < seqs.size(); ++j){
-				if(i != j){
-					double acc_dist = distmatrix.get_dist(i, j);
-					if(acc_dist < min_dist) min_dist = acc_dist;
-				}
-			}
-			if(min_dist < params.maxerror) nonspanning_indeces.emplace_back(i);
+		if(subj_tag.spanning() && subj_seq.size() > 0) {
+			spanning_indeces.emplace_back((int)i);
+			if(subj_seq.size() > max_spanning_size) max_spanning_size = subj_seq.size();
 		}
-		*/
+	}
+
+	std::vector<int> nonspanning_indeces;
+
+	for(uint32_t i = 0; i < seqs.size(); ++i){
+		abg& subj_tag = abg_reads[i];
+		std::string& subj_seq = seqs[i];
+		if(!subj_tag.spanning() && subj_seq.size() > max_spanning_size && (subj_tag.spanning_l || subj_tag.spanning_r)) nonspanning_indeces.emplace_back((int)i);
 	}
 
 	if(!nonspanning_indeces.empty() && !spanning_indeces.empty()){
@@ -147,8 +145,10 @@ void realignment(wfa::WFAligner& aligner_edit, wfa::WFAligner& aligner_gap, cons
 				group_count_task(bps_r, bps_r_counts);
 				int left = bps_l_counts.front().first - params.k;
 				int right = bps_r_counts.front().first;
-				subj_tag.realigned.reset(new std::pair<int,int>(left, right - left));
-				if(subj_tag.spanning_l) subj_tag.spanning_r = true; else subj_tag.spanning_l = true;
+				if(left != 0 || right != (int)seqs[i].size()){
+					subj_tag.realigned.reset(new std::pair<int,int>(left, right - left));
+					if(subj_tag.spanning_l) subj_tag.spanning_r = true; else subj_tag.spanning_l = true;
+				}
 			}
 		}
 	}
