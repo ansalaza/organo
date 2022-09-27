@@ -91,8 +91,8 @@ void genotype_process(
 					if(local_block.seqs[s].size() > 0) spanning_nonempty.emplace_back(s);
 				}
 			}
-			if(params.maxalleles > 0){
-				double error_est = distmat.binned_kde(3, params.mincov > 1 ? params.mincov - 1 : 1, params.maxerror, spanning_nonempty);
+			if(params.maxalleles > 0 && spanning_nonempty.size() > 1){
+				double error_est = distmat.binned_kde(3, params.maxerror, spanning_nonempty);
 				local_params.maxerror = error_est > params.maxerror ? error_est : params.maxerror;
 			}
 			std::vector<std::vector<uint32_t>> ccs;

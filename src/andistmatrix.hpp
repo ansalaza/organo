@@ -11,7 +11,7 @@ class andistmatrix{
 		void set_dist(uint32_t, uint32_t, double);
 		double get_dist(uint32_t, uint32_t) const;
 		uint32_t representative(std::vector<uint32_t>&) const;
-		double binned_kde(const int&, const int&, const double&, std::vector<uint32_t>&) const;
+		double binned_kde(const int&, const double&, std::vector<uint32_t>&) const;
 		uint32_t size()const;
 
 	private:

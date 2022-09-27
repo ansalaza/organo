@@ -56,7 +56,7 @@ uint32_t andistmatrix::representative(std::vector<uint32_t>& indeces) const
 	}
 }
 
-double andistmatrix::binned_kde(const int& max_bandwidth, const int& min_support, const double& error, std::vector<uint32_t>& indeces) const
+double andistmatrix::binned_kde(const int& max_bandwidth, const double& error, std::vector<uint32_t>& indeces) const
 {
 
 	std::vector<std::vector<double>> bin_dists;
@@ -72,9 +72,9 @@ double andistmatrix::binned_kde(const int& max_bandwidth, const int& min_support
 
 	int error_i = 0;
 	uint32_t start_i = 0;
-	if(bin_dists[0].size() >= min_support) start_i = error_i;
+	if(bin_dists[0].size() > 0) start_i = error_i;
 	else {
-		while(start_i < 100) if(bin_dists[start_i].size() < min_support) ++start_i; else break;
+		while(start_i < 100) if(bin_dists[start_i].size() < 1) ++start_i; else break;
 	}
 	//std::cerr << "start at " << start_i << '\n';
 	int current_max = 0;
