@@ -69,6 +69,7 @@ void genotype_process(
 		wfa::WFAlignerGapAffine2Pieces aligner_gap(2, 4, 2, 24, 1, wfa::WFAligner::Alignment, wfa::WFAligner::MemoryMed);
 
 		for(int i = a; i < b; ++i){
+			organo_opts local_params = params;
 			//init alignment objects for current thread
 			auto& local_block = loaded_blocks[i];
 			std::vector<uint32_t> seqs_l(local_block.size());
@@ -78,16 +79,27 @@ void genotype_process(
 	    		hp_compressed_seq.resize(local_block.size(), "");
 	        	for(uint32_t j = 0; j < local_block.seqs.size(); ++j) if(local_block.seqs[j].size() > 0) homopolymer_compressor(local_block.seqs[j].c_str(), hp_compressed_seq[j]);
 	      	}
+
 			andistmatrix distmat(local_block.size());
 			if(!params.hp && params.hpd) spanning_aware_pairwise_alignment(aligner_edit, params, local_block.reads, hp_compressed_seq, seqs_l, distmat);
 			else spanning_aware_pairwise_alignment(aligner_edit, params, local_block.reads, local_block.seqs, seqs_l, distmat);
-			std::vector<std::vector<uint32_t>> ccs;
 			std::vector<uint32_t> spanning;
-			for(uint32_t s = 0; s < local_block.size(); ++s) if(local_block.reads[s].spanning()) spanning.emplace_back(s);
-			cluster_task(params, distmat, spanning, ccs);
+			std::vector<uint32_t> spanning_nonempty;
+			for(uint32_t s = 0; s < local_block.size(); ++s) {
+				if(local_block.reads[s].spanning()) {
+					spanning.emplace_back(s);
+					if(local_block.seqs[s].size() > 0) spanning_nonempty.emplace_back(s);
+				}
+			}
+			if(params.maxalleles > 0){
+				double error_est = distmat.binned_kde(3, params.mincov > 1 ? params.mincov - 1 : 1, params.maxerror, spanning_nonempty);
+				local_params.maxerror = error_est > params.maxerror ? error_est : params.maxerror;
+			}
+			std::vector<std::vector<uint32_t>> ccs;
+			cluster_task(local_params, distmat, spanning, ccs);
 			std::vector<std::vector<uint32_t>> ccs_expanded(ccs.size());
 			std::vector<uint32_t> unassigned;
-			nonspanning_assignment_task(params, distmat, local_block.reads, ccs, ccs_expanded, unassigned);
+			nonspanning_assignment_task(local_params, distmat, local_block.reads, ccs, ccs_expanded, unassigned);
 			uint32_t total_reads = 0.0;
 			for(uint32_t j = 0; j < ccs.size(); ++j) total_reads += ccs[j].size() + ccs_expanded[j].size();
 			for(uint32_t j = 0; j < ccs.size(); ++j) {

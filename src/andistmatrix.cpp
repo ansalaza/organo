@@ -2,6 +2,7 @@
 #include <exception>
 #include <iostream>
 #include <cstddef>
+#include <cmath>
 #include "andistmatrix.hpp"
 
 andistmatrix::andistmatrix(uint32_t _n): n(_n), d_n((n * (n - 1)) / 2)
@@ -53,6 +54,57 @@ uint32_t andistmatrix::representative(std::vector<uint32_t>& indeces) const
 		}
 		return indeces[smallest_index];
 	}
+}
+
+double andistmatrix::binned_kde(const int& max_bandwidth, const int& min_support, const double& error, std::vector<uint32_t>& indeces) const
+{
+
+	std::vector<std::vector<double>> bin_dists;
+	for(uint32_t i = 0; i < 100; ++i) bin_dists.emplace_back(std::vector<double>());
+
+	for(uint32_t i = 0; i < indeces.size(); ++i){
+		for(uint32_t j = i + 1; j < indeces.size(); ++j){
+			auto d = get_dist(indeces[i], indeces[j]);
+			if(d == 1.0) d = 0.99;
+			bin_dists[std::floor(d*100)].emplace_back(d);
+		}
+	}
+
+	int error_i = 0;
+	uint32_t start_i = 0;
+	if(bin_dists[0].size() >= min_support) start_i = error_i;
+	else {
+		while(start_i < 100) if(bin_dists[start_i].size() < min_support) ++start_i; else break;
+	}
+	//std::cerr << "start at " << start_i << '\n';
+	int current_max = 0;
+	int bandwidth_iter = 0;
+	while(bandwidth_iter < max_bandwidth && start_i < bin_dists.size()){
+		int acc_max = 0;
+		for(uint32_t i = 0; i < max_bandwidth; ++i) acc_max += bin_dists[start_i + i].size();
+		//std::cerr << "index: " << start_i << ',' << acc_max << '\n';
+		if(acc_max == 0 || acc_max < current_max) ++bandwidth_iter;
+		else {
+			bandwidth_iter = 0;
+			current_max = acc_max;
+		}
+		++start_i;
+	}
+
+	//std::cerr << "max at: " << (start_i - max_bandwidth - 1) << '\n';
+	double mean_sum = 0.0;
+	uint32_t mean_n = 0;
+
+	uint32_t i;
+	if(start_i < max_bandwidth - 1) i = 0; else i = start_i - max_bandwidth - 1;
+
+	for(; i < start_i; ++i){
+		mean_n += bin_dists[i].size();
+		for(const auto& d : bin_dists[i]) mean_sum += d;
+	}
+
+	if(mean_n == 0) return 0.0; else return (mean_sum / mean_n) + 0.005;
+
 }
 
 uint32_t andistmatrix::size()const{return distmat.size();}
