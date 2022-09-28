@@ -19,7 +19,6 @@ void command_generate_parser(int argc, char** argv){
       .add_options()
       ("b, bed", "BED-formatted file of target regions.", cxxopts::value<std::string>())
       ("hap", "Two-column TSV file specifying haplotype-tagged reads.", cxxopts::value<std::string>()->default_value(""))
-      ("fasta", "Output in FASTA format.", cxxopts::value<bool>()->default_value("false"))
       ("assembly", "Generate AB-graphs from assembly-to-assembly alignments.", cxxopts::value<bool>()->default_value("false"))
       ("m, mapq", "Minimum mapping quality.", cxxopts::value<uint8_t>()->default_value("20"))
       ("t, threads", "Total number of threads.", cxxopts::value<uint32_t>()->default_value("4"));
@@ -33,7 +32,6 @@ void command_generate_parser(int argc, char** argv){
       organo_opts params;
       const std::string bed = result["bed"].as<std::string>();
       const std::string hap = result["hap"].as<std::string>();
-      params.fasta = result["fasta"].as<bool>();
       params.assembly = result["assembly"].as<bool>();
 
       //process mapq accordingly

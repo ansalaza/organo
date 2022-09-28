@@ -94,49 +94,63 @@ void generate(const std::string bam, const std::string bed, const std::string ha
     	std::cerr << "(" << antimestamp() << "): Loaded " << read2ha.size() << " total haplotype-tagged reads" << std::endl;
     }
 
-    //set-upt bam file opener to stdout
-    samFile* bamstdout = sam_open("-", "wb" );
-    bam_hdr_t *hdr = bam_hdr_init();
-    hdr->l_text = strlen(init_header);
-    hdr->text = strdup(init_header);
-    hdr->n_targets = 0;
-    sam_hdr_write(bamstdout, hdr);
-
  	std::cerr << "(" << antimestamp() << "): Processing " << bam << std::endl;
 
  	if(params.assembly){
- 		auto& bam_inst = bam_insts[0];
-		while(sam_read1(bam_inst.fp, bam_inst.header, bam_inst.read) > 0){
-			uint32_t qstart = bam_inst.read->core.pos;
-			uint32_t qend = qstart + bam_inst.read->core.l_qseq;
-			std::vector<std::size_t> results;
-			bed_regions_tree.overlap(qstart, qend, results);
-			for(uint32_t r = 0; r < results.size(); ++r) {
-				std::string chr = bed_regions_tree.data(results[r]);
-				if(chr == bam_inst.header->target_name[bam_inst.read->core.tid]){
-					uint32_t rstart = bed_regions_tree.start(results[r]);
-					uint32_t rend = bed_regions_tree.end(results[r]);
-					std::string edge_seq;
-					abg_generate_msg msg;
-					abg_generate(bam_inst.read, bed_regions_tree.start(results[r]), bed_regions_tree.end(results[r]), msg, edge_seq);
-					if(msg.successful){
-						char span_tag;
-						if(msg.spanning_l && msg.spanning_r) span_tag = 'b';
-						else if(msg.spanning_l) span_tag = 'l';
-						else if(msg.spanning_r) span_tag = 'r';
-						else span_tag = 'n';
-						seq_block_mutex.lock();
-						std::cout << '>' << chr << ':' << rstart << '-' << rend << " SP:Z:" << span_tag << " RN:Z:" << (char*)bam_inst.read->data << '\n';
-						std::cout << edge_seq << '\n';
-						seq_block_mutex.unlock();
+ 		pool.parallelize_loop(0, bam_insts[0].header->n_targets,
+		[&pool, &thread2index, &bam_insts, &bed_regions, &params, &seq_block_mutex, &bed_regions_tree](const int a, const int b){
+			std::thread::id thread_id = std::this_thread::get_id();
+			int thread_index = thread2index.find(thread_id)->second;
+			ansbam& bam_inst = bam_insts[thread_index];
+
+			for (int i = a; i < b; ++i){
+				std::string region_bed = bam_inst.header->target_name[i];
+				hts_itr_t *iter = sam_itr_querys(bam_inst.idx, bam_inst.header, region_bed.c_str());
+				if(iter == nullptr) std::cerr << "(" << antimestamp() << "): WARNING: query failed at region " << region_bed << std::endl;
+				else{
+					while(sam_itr_next(bam_inst.fp, iter, bam_inst.read) > 0){
+						uint32_t qstart = bam_inst.read->core.pos;
+						uint32_t qend = qstart + bam_inst.read->core.l_qseq;
+						std::vector<std::size_t> results;
+						bed_regions_tree.overlap(qstart, qend, results);
+						for(uint32_t r = 0; r < results.size(); ++r) {
+							std::string chr = bed_regions_tree.data(results[r]);
+							if(chr == bam_inst.header->target_name[bam_inst.read->core.tid]){
+								uint32_t rstart = bed_regions_tree.start(results[r]);
+								uint32_t rend = bed_regions_tree.end(results[r]);
+								std::string edge_seq;
+								abg_generate_msg msg;
+								abg_generate(bam_inst.read, bed_regions_tree.start(results[r]), bed_regions_tree.end(results[r]), msg, edge_seq);
+								if(msg.successful){
+									char span_tag;
+									if(msg.spanning_l && msg.spanning_r) span_tag = 'b';
+									else if(msg.spanning_l) span_tag = 'l';
+									else if(msg.spanning_r) span_tag = 'r';
+									else span_tag = 'n';
+									seq_block_mutex.lock();
+									std::cout << '>' << chr << ':' << rstart << '-' << rend << " SP:Z:" << span_tag << " RN:Z:" << (char*)bam_inst.read->data << '\n';
+									std::cout << edge_seq << '\n';
+									seq_block_mutex.unlock();
+								}
+							}
+						}
 					}
 				}
+				hts_itr_destroy(iter);
 			}
-		}
+		}).wait();
 	}
  	else{
+ 		//set-upt bam file opener to stdout
+	    samFile* bamstdout = sam_open("-", "wb" );
+	    bam_hdr_t *hdr = bam_hdr_init();
+	    hdr->l_text = strlen(init_header);
+	    hdr->text = strdup(init_header);
+	    hdr->n_targets = 0;
+	    sam_hdr_write(bamstdout, hdr);
+
  		pool.parallelize_loop(0, bed_regions.size(),
-		[&pool, &thread2index, &bam_insts, &bed_regions, &read2ha, &params, &seq_block_mutex, &bamstdout, &bed_regions_tree](const int a, const int b){
+		[&pool, &thread2index, &bam_insts, &bed_regions, &read2ha, &params, &seq_block_mutex, &bamstdout](const int a, const int b){
 			const std::string sa_tag = "SA";
 			const std::string np_tag = "np";
 			std::thread::id thread_id = std::this_thread::get_id();
@@ -225,12 +239,11 @@ void generate(const std::string bam, const std::string bed, const std::string ha
 						//std::cerr << "(" << antimestamp() << "): Finished" << std::endl;
 					}
 				}
-				hts_itr_destroy(iter);
 			}
  		}).wait();
+		bam_hdr_destroy(hdr);
+    	sam_close(bamstdout); // close bam file
  	}
- 	bam_hdr_destroy(hdr);
-    sam_close(bamstdout); // close bam file
 	 	
 	for(uint32_t i = 0; i < thread2index.size(); ++i) bam_insts[i].destroy();
 }
