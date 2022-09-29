@@ -20,13 +20,15 @@ void realign_process(BS::thread_pool& pool, samFile* outfile, std::vector<abg_bl
 {
 	pool.parallelize_loop(0, loaded_blocks.size(),
 	[&pool, &outfile, &loaded_blocks, &seq_block_mutex, &params](const int a, const int b){
-		wfa::WFAlignerGapAffine2Pieces aligner(2, 4, 2, 24, 1, wfa::WFAligner::Alignment, wfa::WFAligner::MemoryMed);
+		//wfa::WFAlignerGapAffine2Pieces aligner(2, 4, 2, 24, 1, wfa::WFAligner::Alignment, wfa::WFAligner::MemoryMed);
+		wfa::WFAlignerGapAffine aligner(4,6,2, wfa::WFAligner::Alignment, wfa::WFAligner::MemoryMed);
 		wfa::WFAlignerEdit aligner_edit(wfa::WFAligner::Score, wfa::WFAligner::MemoryMed);
 
 		for(int i = a; i < b; ++i){
 			//init alignment objects for current thread
 			auto& local_block = loaded_blocks[i];
-			realignment(aligner_edit, aligner, params, local_block.reads, local_block.seqs);
+			//realignment(aligner_edit, aligner, params, local_block.reads, local_block.seqs);
+			realignment2(aligner, params, local_block.reads, local_block.seqs);
 			std::vector<uint32_t> final_indeces(local_block.size());
 			for(uint32_t j = 0; j < local_block.size(); ++j) final_indeces[j] = j;
 			seq_block_mutex.lock();

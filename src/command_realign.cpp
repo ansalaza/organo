@@ -17,14 +17,9 @@ void command_realign_parser(int argc, char** argv){
       .set_tab_expansion()
       .custom_help("[parameters] <FASTA>")
       .add_options()
-      ("e, error", "Maximum sequence error.", cxxopts::value<double>()->default_value("0.05"))
-      ("s, minsim", "Minimum sequence similarity for non-spanning assignment.", cxxopts::value<double>()->default_value("0.99"))
-      ("k, kmer-size", "Matching kmer-size for realignments.", cxxopts::value<int>()->default_value("5"))
-
+      ("s, minsim", "Minimum sequence similarity for non-spanning assignment.", cxxopts::value<double>()->default_value("0.95"))
+      ("k, kmer-size", "Matching kmer-size for realignments.", cxxopts::value<int>()->default_value("21"))
       ("m, max-cov", "Ignore target regions with more than this number of sequences", cxxopts::value<int>()->default_value("50"))
-      ("h, hp", "Compress homopolymers.", cxxopts::value<bool>()->default_value("false"))
-      ("d, hpd", "Compress homopolymers during distance calculations only.", cxxopts::value<bool>()->default_value("false"))
-      
       ("t, threads", "Total number of threads.", cxxopts::value<uint32_t>()->default_value("4"))
       ("block", "Number of target regions to load in memory (used for multithreading).", cxxopts::value<uint32_t>()->default_value("50000"));
     //parse CLI arguments
@@ -35,8 +30,6 @@ void command_realign_parser(int argc, char** argv){
     if(inputs.empty()) std::cout << options.help();
     else {
       organo_opts params;
-      params.hp = result["hp"].as<bool>();
-      params.hpd = result["hpd"].as<bool>();
       params.block_size = result["block"].as<uint32_t>();
       
 
@@ -45,14 +38,6 @@ void command_realign_parser(int argc, char** argv){
       if(minsim >= 0.0 || minsim <= 1.0) params.minsim = minsim;
       else{
         std::cout << "Min-similarity must be [0.0, 1.0]: " << minsim << '\n' << options.help() <<  std::endl;
-        exit(1);
-      }
-
-      //process maxerror accordingly
-      double maxerror = result["error"].as<double>();
-      if(maxerror >= 0.0 || maxerror <= 1.0) params.maxerror = maxerror;
-      else{
-        std::cout << "Max error must be [0.0, 1.0]: " << maxerror << '\n' << options.help() <<  std::endl;
         exit(1);
       }
 

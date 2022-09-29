@@ -110,6 +110,105 @@ void find_bps_cigar(wfa::WFAligner& aligner, const organo_opts& params, std::vec
 	}
 }
 
+int maximum_weighted_window(std::vector<uint32_t>& weights, uint32_t& k){
+	uint32_t acc_weight = 0;
+	for(uint32_t i = 0; i < k; ++i) acc_weight += weights[i];
+	uint32_t max_weight = acc_weight;
+	uint32_t max_i = 0;
+	for(uint32_t i = k; i < weights.size(); ++i){
+		acc_weight = acc_weight - weights[i - k] + weights[i];
+		if(acc_weight > max_weight) {
+			max_weight = acc_weight;
+			max_i = i - k + 1;
+		}
+	}
+	if(max_weight < k) return -1; else return (int)max_i;
+}
+
+void flank_alignment(wfa::WFAligner& aligner_gap, const organo_opts& params, abg& tag, std::string& subseq, std::string& seq, std::vector<uint32_t>& base_weight)
+{
+	if(tag.spanning_l) aligner_gap.alignEndsFree(subseq, 0, 0, seq, seq.size(), seq.size());
+	else aligner_gap.alignEndsFree(subseq, 0, 0, seq, seq.size(), seq.size());
+	
+	uint32_t index = 0;
+	std::string cigar = aligner_gap.getAlignmentCigar();
+	uint32_t matches = 0;
+	std::vector<uint32_t> weight_indeces;
+	for(uint32_t i = 0; i < cigar.size(); ++i){
+		const char c = cigar[i];
+		if(c == 'M' || c == 'X') {
+			if(c == 'M') ++matches;
+			weight_indeces.emplace_back(i);
+		}
+		if(cigar[i] != 'D') ++index;
+	}
+	if(((double)matches/subseq.size()) >= params.minsim) for(const auto& w : weight_indeces) ++base_weight[w];
+}
+
+void realignment2(wfa::WFAligner& aligner_gap, const organo_opts& params, std::vector<abg>& abg_reads, std::vector<std::string>& seqs)
+{
+
+	uint32_t k_flank = params.k;
+	uint32_t max_spanning_size = 0;
+	std::vector<uint32_t> spanning_indeces;
+	for(uint32_t i = 0; i < seqs.size(); ++i){
+		abg& subj_tag = abg_reads[i];
+		std::string& subj_seq = seqs[i];
+		if(subj_tag.spanning() && subj_seq.size() >= k_flank) {
+			spanning_indeces.emplace_back(i);
+			if(subj_seq.size() > max_spanning_size) max_spanning_size = subj_seq.size();
+		}
+	}
+
+	std::vector<uint32_t> nonspanning_indeces;
+
+	if(!spanning_indeces.empty()){
+		for(uint32_t i = 0; i < seqs.size(); ++i){
+			abg& subj_tag = abg_reads[i];
+			std::string& subj_seq = seqs[i];
+			if(!subj_tag.spanning() && subj_seq.size() > max_spanning_size && (subj_tag.spanning_l || subj_tag.spanning_r)) nonspanning_indeces.emplace_back(i);
+		}
+	}
+
+	if(!nonspanning_indeces.empty() && !spanning_indeces.empty()){
+		std::vector<std::string> subseqs_l;
+		std::vector<std::string> subseqs_r;
+		for(uint32_t i = 0; i < abg_reads.size(); ++i){
+			const auto& tag = abg_reads[i];
+			if(tag.spanning_l) subseqs_l.emplace_back(seqs[i].substr(0, k_flank));
+			else if(tag.spanning_r) subseqs_r.emplace_back(seqs[i].substr(seqs[i].size() - k_flank));
+		}
+
+		if(!subseqs_l.empty() && !subseqs_r.empty()){
+			for(const auto& i : nonspanning_indeces){
+				auto& tag = abg_reads[i];
+				std::vector<uint32_t> base_weight(seqs[i].size(), 0);
+				if(tag.spanning_l){
+					for(auto& s : subseqs_r) flank_alignment(aligner_gap, params, tag, s, seqs[i], base_weight);
+				}
+				else {
+					for(auto& s : subseqs_l) flank_alignment(aligner_gap, params, tag, s, seqs[i], base_weight);	
+				}
+
+				int start_i = maximum_weighted_window(base_weight, k_flank);
+				if(start_i >= 0){
+					if(tag.spanning_l) {
+						tag.realigned.reset(new std::pair<int,int>(0, start_i + k_flank));
+						tag.spanning_r = true;
+					}
+					else {
+						tag.realigned.reset(new std::pair<int,int>(start_i, seqs[i].size() - start_i));
+						tag.spanning_l = true;
+					}
+					
+				}
+			}
+		}
+
+	}
+
+}
+
 
 void realignment(wfa::WFAligner& aligner_edit, wfa::WFAligner& aligner_gap, const organo_opts& params, std::vector<abg>& abg_reads, std::vector<std::string>& seqs)
 {

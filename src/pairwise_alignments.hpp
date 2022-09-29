@@ -23,6 +23,13 @@ void trimming_pairwise_alignment(
 	andistmatrix& distmatrix
 	);
 
+void realignment2(
+	wfa::WFAligner& aligner_gap, 
+	const organo_opts& params, 
+	std::vector<abg>& abg_reads, 
+	std::vector<std::string>& seqs
+	);
+
 void realignment(
 	wfa::WFAligner& aligner_edit, 
 	wfa::WFAligner& aligner_gap, 
