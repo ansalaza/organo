@@ -20,9 +20,7 @@ void realign_process(BS::thread_pool& pool, samFile* outfile, std::vector<abg_bl
 {
 	pool.parallelize_loop(0, loaded_blocks.size(),
 	[&pool, &outfile, &loaded_blocks, &seq_block_mutex, &params](const int a, const int b){
-		//wfa::WFAlignerGapAffine2Pieces aligner(2, 4, 2, 24, 1, wfa::WFAligner::Alignment, wfa::WFAligner::MemoryMed);
 		wfa::WFAlignerGapAffine aligner(4,6,2, wfa::WFAligner::Alignment, wfa::WFAligner::MemoryMed);
-		wfa::WFAlignerEdit aligner_edit(wfa::WFAligner::Score, wfa::WFAligner::MemoryMed);
 
 		for(int i = a; i < b; ++i){
 			//init alignment objects for current thread
