@@ -21,14 +21,14 @@ void realign_process(BS::thread_pool& pool, samFile* outfile, std::vector<abg_bl
 	pool.parallelize_loop(0, loaded_blocks.size(),
 	[&pool, &outfile, &loaded_blocks, &seq_block_mutex, &params](const int a, const int b){
 		wfa::WFAlignerGapAffine aligner(4,6,2, wfa::WFAligner::Alignment, wfa::WFAligner::MemoryMed);
-
 		for(int i = a; i < b; ++i){
 			//init alignment objects for current thread
 			auto& local_block = loaded_blocks[i];
+			std::cout << local_block.name << std::endl;
 			//realignment(aligner_edit, aligner, params, local_block.reads, local_block.seqs);
 			realignment2(aligner, params, local_block.reads, local_block.seqs);
-			std::vector<uint32_t> final_indeces(local_block.size());
-			for(uint32_t j = 0; j < local_block.size(); ++j) final_indeces[j] = j;
+			std::vector<uint32_t> final_indeces;
+			for(uint32_t j = 0; j < local_block.size(); ++j) final_indeces.emplace_back(j);
 			seq_block_mutex.lock();
 			write2bam(outfile, local_block.name, final_indeces, local_block.reads, local_block.seqs);
 			seq_block_mutex.unlock();

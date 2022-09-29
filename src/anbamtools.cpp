@@ -290,6 +290,7 @@ void bam_iterator(ansbam& bam_inst)
 
 void write2bam(samFile* outfile, const std::string& region_bed, const std::vector<uint32_t>& indeces, const std::vector<abg>& abg_reads, const std::vector<std::string>& edge_seqs)
 {
+	
 	for(const auto& i : indeces){
 		if(i >= edge_seqs.size() || i >= abg_reads.size()){
 			std::cerr << "Error at region " << region_bed << ": index " << i << " out of bounds " << abg_reads.size() << ',' << edge_seqs.size() << '\n';
@@ -328,6 +329,7 @@ void write2bam(samFile* outfile, const std::string& region_bed, const std::vecto
 	    bam_destroy1(q);
 	    //std::cerr << "bam destroyed\n";
 	}
+	
 }
 
 abg_block_iter::abg_block_iter(const std::string& file, const uint32_t& b, const uint32_t& m, const bool& h): block_size(b), maxcov(m), hp(h){bam_inst.init(file, false);};
