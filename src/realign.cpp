@@ -24,7 +24,6 @@ void realign_process(BS::thread_pool& pool, samFile* outfile, std::vector<abg_bl
 		for(int i = a; i < b; ++i){
 			//init alignment objects for current thread
 			auto& local_block = loaded_blocks[i];
-			std::cout << local_block.name << std::endl;
 			//realignment(aligner_edit, aligner, params, local_block.reads, local_block.seqs);
 			realignment2(aligner, params, local_block.reads, local_block.seqs);
 			std::vector<uint32_t> final_indeces;
