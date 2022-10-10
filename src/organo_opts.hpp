@@ -9,8 +9,6 @@ struct organo_opts {
 	uint8_t min_mapq;
 	bool assembly;
 
-	//collapse args
-
 	//trim args
 	double maxerror;
 	double minsim;
@@ -21,9 +19,8 @@ struct organo_opts {
 	std::string tsv;
 	int maxalleles;
 	int mincov;
+	int lowcov;
 	int maxcov;
-
-	//bridge args
 
 	//general args
 	uint32_t threads;

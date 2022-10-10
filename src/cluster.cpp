@@ -75,13 +75,13 @@ void genotype_process(
 			std::vector<uint32_t> seqs_l(local_block.size());
 			for(uint32_t j = 0; j < local_block.size(); ++j) seqs_l[j] = local_block.seqs[j].size();
 			std::vector<std::string> hp_compressed_seq;
-	    	if(!params.hp && params.hpd) {
+	    	if(!local_params.hp && local_params.hpd) {
 	    		hp_compressed_seq.resize(local_block.size(), "");
 	        	for(uint32_t j = 0; j < local_block.seqs.size(); ++j) if(local_block.seqs[j].size() > 0) homopolymer_compressor(local_block.seqs[j].c_str(), hp_compressed_seq[j]);
 	      	}
 
 			andistmatrix distmat(local_block.size());
-			if(!params.hp && params.hpd) spanning_aware_pairwise_alignment(aligner_edit, params, local_block.reads, hp_compressed_seq, seqs_l, distmat);
+			if(!local_params.hp && local_params.hpd) spanning_aware_pairwise_alignment(aligner_edit, params, local_block.reads, hp_compressed_seq, seqs_l, distmat);
 			else spanning_aware_pairwise_alignment(aligner_edit, params, local_block.reads, local_block.seqs, seqs_l, distmat);
 			std::vector<uint32_t> spanning;
 			std::vector<uint32_t> spanning_nonempty;
@@ -91,10 +91,11 @@ void genotype_process(
 					if(local_block.seqs[s].size() > 0) spanning_nonempty.emplace_back(s);
 				}
 			}
-			if(params.maxalleles > 0 && spanning_nonempty.size() > 1){
-				double error_est = distmat.binned_kde(3, params.maxerror, spanning_nonempty);
-				local_params.maxerror = error_est > params.maxerror ? error_est : params.maxerror;
+			if(local_params.maxalleles > 0 && spanning_nonempty.size() > 1){
+				double error_est = distmat.binned_kde(3, local_params.maxerror, spanning_nonempty);
+				local_params.maxerror = error_est > local_params.maxerror ? error_est : local_params.maxerror;
 			}
+			if((int)spanning.size() <= local_params.lowcov) local_params.mincov = 1;
 			std::vector<std::vector<uint32_t>> ccs;
 			cluster_task(local_params, distmat, spanning, ccs);
 			std::vector<std::vector<uint32_t>> ccs_expanded(ccs.size());

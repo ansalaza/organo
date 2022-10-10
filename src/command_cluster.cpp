@@ -22,6 +22,7 @@ void command_cluster_parser(int argc, char** argv){
       ("s, min-sim", "Minimum sequence similarity for non-spanning assignment.", cxxopts::value<double>()->default_value("0.99"))
 
       ("c, min-cov", "Minimum coverage support (used for guiding cluster-merging).", cxxopts::value<int>()->default_value("2"))
+      ("l, low-cov", "Automatically switch to 'low-coverage' mode when per-region cov is <= X.", cxxopts::value<int>()->default_value("6"))
       ("m, max-cov", "Ignore region above this coverage threshold", cxxopts::value<int>()->default_value("50"))
 
       ("g, group", "Group sequences based on region ('TG'-tag).", cxxopts::value<bool>()->default_value("false"))
@@ -53,23 +54,31 @@ void command_cluster_parser(int argc, char** argv){
 
       //process mincov accordingly
       int mincov = result["min-cov"].as<int>();
-      if(mincov > 0) params.mincov = mincov;
+      if(mincov >= 0) params.mincov = mincov;
       else{
-        std::cout << "Min-similarity must be > 0: " << mincov << '\n' << options.help() <<  std::endl;
+        std::cout << "Min-coverage must be >= 0: " << mincov << '\n' << options.help() <<  std::endl;
+        exit(1);
+      }
+
+      //process low-cov accordingly
+      int lowcov = result["low-cov"].as<int>();
+      if(lowcov >= 0) params.lowcov = lowcov;
+      else{
+        std::cout << "Low-coverage must be >= 0: " << lowcov << '\n' << options.help() <<  std::endl;
         exit(1);
       }
 
       //process minsim accordingly
-      float minsim = result["min-sim"].as<double>();
-      if(minsim >= 0.0f || minsim <= 1.0f) params.minsim = minsim;
+      double minsim = result["min-sim"].as<double>();
+      if(minsim >= 0.0 || minsim <= 1.0) params.minsim = minsim;
       else{
         std::cout << "Min-similarity must be [0.0, 1.0]: " << minsim << '\n' << options.help() <<  std::endl;
         exit(1);
       }
 
       //process maxerror accordingly
-      float maxerror = result["error"].as<double>();
-      if(maxerror >= 0.0f || maxerror <= 1.0f) params.maxerror = maxerror;
+      double maxerror = result["error"].as<double>();
+      if(maxerror >= 0.0 || maxerror <= 1.0) params.maxerror = maxerror;
       else{
         std::cout << "Min-similarity must be [0.0, 1.0]: " << maxerror << '\n' << options.help() <<  std::endl;
         exit(1);
