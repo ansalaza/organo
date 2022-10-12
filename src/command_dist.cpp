@@ -17,6 +17,7 @@ void command_dist_parser(int argc, char** argv){
       .set_tab_expansion()
       .custom_help("[parameters] <FASTA>")
       .add_options()
+      ("c, min-cov", "Only consider alleles with at least this coverage.", cxxopts::value<int>()->default_value("1"))
       ("h, hp", "Compress homopolymers.", cxxopts::value<bool>()->default_value("false"))
       ("d, hpd", "Compress homopolymers during distance calculations only.", cxxopts::value<bool>()->default_value("false"))
       ("t, threads", "Total number of threads.", cxxopts::value<int>()->default_value("4"));
@@ -30,6 +31,14 @@ void command_dist_parser(int argc, char** argv){
       organo_opts params;
       params.hp = result["hp"].as<bool>();
       params.hpd = result["hpd"].as<bool>();
+
+      //process mincov accordingly
+      int mincov = result["min-cov"].as<int>();
+      if(mincov >= 0) params.mincov = mincov;
+      else{
+        std::cout << "Min-coverage must be >= 0: " << mincov << '\n' << options.help() <<  std::endl;
+        exit(1);
+      }
       
       //process threads accordingly
       int threads = result["threads"].as<int>();

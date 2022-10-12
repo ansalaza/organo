@@ -22,6 +22,19 @@ struct target_seqs {
 	std::vector<int> indeces;
 };
 
+int get_allele_cov(const organo_opts& params, const char* comment_ptr)
+{
+	if(comment_ptr == nullptr) return params.mincov;
+	else{
+		std::string value;
+    	std::istringstream stream(comment_ptr);
+    	while(std::getline(stream, value, ' ')) {
+    		if(value.substr(0,5) == "DP:i:") return std::stoi(value.substr(5));
+    	}
+    	return params.mincov;
+	}
+}
+
 void dist( const std::vector<std::string>& fastas, const organo_opts& params)
 {
 	uint32_t total_inputs = fastas.size();
@@ -42,27 +55,31 @@ void dist( const std::vector<std::string>& fastas, const organo_opts& params)
 	    kseq_t *seq = kseq_init(fp);
 	    int seq_l;
 	    while ((seq_l = kseq_read(seq)) >= 0 ) {
-	    	std::string region = seq->name.s;
-	    	std::string local_seq = "";
+	    	int allele_cov = get_allele_cov(params, seq->comment.s);
+	    	if(allele_cov >= params.mincov){
+	    		std::string region = seq->name.s;
+		    	std::string local_seq = "";
 
-	    	if(seq_l > 0) local_seq = seq->seq.s;
-	    	//compress if user provided
-	    	if(params.hp) {
-	    		std::string compressed;
-	    		homopolymer_compressor(local_seq.c_str(), compressed);
-	    		local_seq = compressed;
-	    	}
+		    	if(seq_l > 0) local_seq = seq->seq.s;
+		    	//compress if user provided
+		    	if(params.hp) {
+		    		std::string compressed;
+		    		homopolymer_compressor(local_seq.c_str(), compressed);
+		    		local_seq = compressed;
+		    	}
 
-	    	auto it = loaded_seqs.find(region);
-	    	if(fasta_i == 0 && it == loaded_seqs.end()){
-	    		target_seqs new_target;
-	    		new_target.seqs.emplace_back(local_seq);
-	    		new_target.indeces.emplace_back(fasta_i);
-	    		loaded_seqs.insert({region, new_target});
-	    	}
-	    	else if(it != loaded_seqs.end()){
-	    		it->second.seqs.emplace_back(local_seq);
-	    		it->second.indeces.emplace_back(fasta_i);
+		    	auto it = loaded_seqs.find(region);
+		    	if(fasta_i == 0 && it == loaded_seqs.end()){
+		    		target_seqs new_target;
+		    		new_target.seqs.emplace_back(local_seq);
+		    		new_target.indeces.emplace_back(fasta_i);
+		    		loaded_seqs.insert({region, new_target});
+		    	}
+		    	else if(it != loaded_seqs.end()){
+		    		it->second.seqs.emplace_back(local_seq);
+		    		it->second.indeces.emplace_back(fasta_i);
+		    	}
+
 	    	}
 	    }
 	  	kseq_destroy(seq);
