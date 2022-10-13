@@ -126,7 +126,7 @@ void dist( const std::vector<std::string>& fastas, const organo_opts& params)
 						}
 					}
 					out_mutex.lock();
-					std::cout << bed_region.chr << ':' << bed_region.start << '-' << bed_region.end << '\t' << max_size << '\t' << local_block.second.indeces[j] << '\t' << min_dist << '\n';
+					std::cout << bed_region.chr << ':' << bed_region.start << '-' << bed_region.end << '\t' << bed_region.size() << '\t' << max_size << '\t' << local_block.second.indeces[j] << '\t' << min_dist << '\n';
 					out_mutex.unlock();
 
 				}
@@ -137,7 +137,7 @@ void dist( const std::vector<std::string>& fastas, const organo_opts& params)
 				for(uint32_t j = 0; j < local_block.second.seqs.size(); ++j){
 					if(local_block.second.indeces[j] == 0){
 						out_mutex.lock();
-						std::cout << bed_region.chr << ':' << bed_region.start << '-' << bed_region.end << '\t' << max_size << "\t0\t1.0\n";
+						std::cout << bed_region.chr << ':' << bed_region.start << '-' << bed_region.end << '\t' << bed_region.size() << '\t' << max_size << "\t0\t1.0\n";
 						out_mutex.unlock();
 					}
 				}
