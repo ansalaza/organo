@@ -17,7 +17,8 @@ void command_dist_parser(int argc, char** argv){
       .set_tab_expansion()
       .custom_help("[parameters] <FASTA>")
       .add_options()
-      ("c, min-cov", "Only consider alleles with at least this coverage.", cxxopts::value<int>()->default_value("1"))
+      ("c, min-cov", "Only consider alleles with at least this coverage.", cxxopts::value<int>()->default_value("0"))
+      ("f, min-af", "Only consider alleles with at least this allele-frequency.", cxxopts::value<double>()->default_value("0"))
       ("h, hp", "Compress homopolymers.", cxxopts::value<bool>()->default_value("false"))
       ("d, hpd", "Compress homopolymers during distance calculations only.", cxxopts::value<bool>()->default_value("false"))
       ("t, threads", "Total number of threads.", cxxopts::value<int>()->default_value("4"));
@@ -37,6 +38,14 @@ void command_dist_parser(int argc, char** argv){
       if(mincov >= 0) params.mincov = mincov;
       else{
         std::cout << "Min-coverage must be >= 0: " << mincov << '\n' << options.help() <<  std::endl;
+        exit(1);
+      }
+
+      //process mincov accordingly
+      double minaf = result["min-af"].as<double>();
+      if(minaf >= 0) params.minaf = minaf;
+      else{
+        std::cout << "Min-af must be >= 0: " << minaf << '\n' << options.help() <<  std::endl;
         exit(1);
       }
       

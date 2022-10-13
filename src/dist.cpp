@@ -22,16 +22,15 @@ struct target_seqs {
 	std::vector<int> indeces;
 };
 
-int get_allele_cov(const organo_opts& params, const char* comment_ptr)
+void get_allele_info(const organo_opts& params, const char* comment_ptr, int& cov, double& af)
 {
-	if(comment_ptr == nullptr) return params.mincov;
-	else{
+	if(comment_ptr != nullptr) {
 		std::string value;
     	std::istringstream stream(comment_ptr);
     	while(std::getline(stream, value, ' ')) {
-    		if(value.substr(0,5) == "DP:i:") return std::stoi(value.substr(5));
+    		if(value.substr(0,5) == "DP:i:") cov = std::stoi(value.substr(5));
+    		else if(value.substr(0,5) == "AF:f:") af = std::stod(value.substr(5));
     	}
-    	return params.mincov;
 	}
 }
 
@@ -55,7 +54,10 @@ void dist( const std::vector<std::string>& fastas, const organo_opts& params)
 	    kseq_t *seq = kseq_init(fp);
 	    int seq_l;
 	    while ((seq_l = kseq_read(seq)) >= 0 ) {
-	    	if(fasta_i == 0 || get_allele_cov(params, seq->comment.s) >= params.mincov){
+	    	int cov = params.mincov;
+	    	double af = params.minaf;
+	    	get_allele_info(params, seq->comment.s, cov, af);
+	    	if(fasta_i == 0 || (cov >= params.mincov && af >= params.minaf)){
 	    		std::string region = seq->name.s;
 		    	std::string local_seq = "";
 

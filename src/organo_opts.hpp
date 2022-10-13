@@ -21,6 +21,7 @@ struct organo_opts {
 	int mincov;
 	int lowcov;
 	int maxcov;
+	double minaf;
 
 	//general args
 	uint32_t threads;
