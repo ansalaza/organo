@@ -55,8 +55,7 @@ void dist( const std::vector<std::string>& fastas, const organo_opts& params)
 	    kseq_t *seq = kseq_init(fp);
 	    int seq_l;
 	    while ((seq_l = kseq_read(seq)) >= 0 ) {
-	    	int allele_cov = get_allele_cov(params, seq->comment.s);
-	    	if(allele_cov >= params.mincov){
+	    	if(fasta_i == 0 || get_allele_cov(params, seq->comment.s) >= params.mincov){
 	    		std::string region = seq->name.s;
 		    	std::string local_seq = "";
 
